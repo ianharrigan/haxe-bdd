@@ -13,6 +13,8 @@ class RunnerContext {
         addFunction("info", Runner.info);
         addFunction("error", Runner.error);
         addFunction("warning", Runner.warning);
+        addFunction("promise", Runner.promise);
+        addFunction("deferred", Runner.deferred);
     }
     
     public function addStatic(name:String, object:Dynamic) {
