@@ -3,21 +3,21 @@ import gherkin.ast.Location;
 
 class GherkinDialectProvider implements IGherkinDialectProvider {
     private static var DIALECTS:Map<String, Map<String, Array<String>>>;
-    
+
     private var _defaultDialectName:String;
-    
+
     public function new(defaultDialectName:String = "en") {
         initDialects();
         _defaultDialectName = defaultDialectName;
     }
-    
+
     private static function initDialects() {
         if (DIALECTS != null) {
             return;
         }
-        
+
         DIALECTS = new Map<String, Map<String, Array<String>>>();
-        
+
         // only support "en" for now - should probably read this from json as gherkin-java does
         var data:Map<String, Array<String>> = new Map<String, Array<String>>();
         data.set("and", ["* ", "And "]);
@@ -30,10 +30,10 @@ class GherkinDialectProvider implements IGherkinDialectProvider {
         data.set("scenarioOutline", ["Scenario Outline", "Scenario Template"]);
         data.set("then", ["* ", "Then "]);
         data.set("when", ["* ", "When "]);
-        
+
         DIALECTS.set("en", data);
     }
-    
+
     public var defaultDialect(get, null):GherkinDialect;
     private function get_defaultDialect():GherkinDialect {
         return getDialect(_defaultDialectName, null);

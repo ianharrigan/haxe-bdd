@@ -24,7 +24,7 @@ interface ToString<T> {
 class DefaultToString implements ToString<String> {
     public function new() {
     }
-    
+
     public function toString(o:String):String {
         return o;
     }
@@ -33,7 +33,7 @@ class DefaultToString implements ToString<String> {
 class TokenToString implements ToString<Token> {
     public function new() {
     }
-    
+
     public function toString(t:Token):String {
         return t.matchedText;
     }
@@ -42,7 +42,7 @@ class TokenToString implements ToString<Token> {
 class ParserExceptionToString implements ToString<ParserException> {
     public function new() {
     }
-    
+
     public function toString(e:ParserException):String {
         return e.message;
     }

@@ -3,48 +3,48 @@ package gherkin;
 class GherkinLine implements IGherkinLine {
     private var lineText(default, null):String;
     private var trimmedLineText(default, null):String;
-    
+
     public function new(lineText:String) {
         this.lineText = lineText;
         this.trimmedLineText = StringTools.ltrim(lineText);
     }
-    
+
     public function indent():Int {
         return countSymbols(lineText) - countSymbols(trimmedLineText);
     }
-    
+
     private function countSymbols(s:String) {
         return s.length;
     }
-    
+
     public function detach():Void {
-        
+
     }
-    
+
     public function getLineText(indentToRemove:Int):String {
         if (indentToRemove < 0 || indentToRemove > indent())
             return trimmedLineText;
-        return lineText.substring(indentToRemove);    
+        return lineText.substring(indentToRemove);
     }
-    
+
     public var isEmpty(get, null):Bool;
     private function get_isEmpty():Bool {
         return trimmedLineText.length == 0;
     }
-    
+
     public function startsWith(prefix:String):Bool {
         return StringTools.startsWith(trimmedLineText, prefix);
     }
-    
+
     public function getRestTrimmed(length:Int):String {
         return StringTools.trim(trimmedLineText.substring(length));
     }
-    
+
     public var tags(get, null):Array<GherkinLineSpan>;
     private function get_tags():Array<GherkinLineSpan> {
         return getSpans("\\s+");
     }
-    
+
     public function startsWithTitleKeyword(text:String):Bool {
         var textLength:Int = text.length;
         return trimmedLineText.length > textLength &&
@@ -53,7 +53,7 @@ class GherkinLine implements IGherkinLine {
                     == GherkinLanguageConstants.TITLE_KEYWORD_SEPARATOR;
         // TODO aslak: extract startsWithFrom method for clarity
     }
-    
+
     public var tableCells(get, null):Array<GherkinLineSpan>;
     private function get_tableCells():Array<GherkinLineSpan> {
         var lineSpans:Array<GherkinLineSpan> = new Array<GherkinLineSpan>();
@@ -96,10 +96,10 @@ class GherkinLine implements IGherkinLine {
             }
             col++;
         }
-        
+
         return lineSpans;
     }
-    
+
     public function getSpans(delimiter:String):Array<GherkinLineSpan> {
         var matcher:EReg = new EReg(delimiter, "g");
         var lineSpans:Array<GherkinLineSpan> = new Array<GherkinLineSpan>();

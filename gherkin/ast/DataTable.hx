@@ -4,12 +4,12 @@ import haxe.Json;
 class DataTable extends Node {
     public var rows(default, null):Array<TableRow>;
     public var header:Array<String>;
-    
+
     public function new(rows:Array<TableRow>) {
         super(rows[0].location);
         this.rows = rows;
     }
-    
+
     public function normalise(cols:Array<String>):DataTable {
         var copy:DataTable = fromJSON(toJSON());
         var firstRow:TableRow = copy.rows[0];
@@ -25,7 +25,7 @@ class DataTable extends Node {
         copy.header = cols;
         return copy;
     }
-    
+
     public function get(id:String):TableRow {
         var row = null;
         for (test in rows) {
@@ -36,7 +36,7 @@ class DataTable extends Node {
         }
         return row;
     }
-    
+
     public function value(id:String):String {
         var value = null;
         var row = get(id);
@@ -45,13 +45,13 @@ class DataTable extends Node {
         }
         return value;
     }
-    
+
     public function toJSON():String {
         var json:String = Json.stringify(rows);
         json = StringTools.replace(json, "\"", "'");
         return json;
     }
-    
+
     public static function fromJSON(json:String) {
         json = StringTools.replace(json, "'", "\"");
 
@@ -67,8 +67,8 @@ class DataTable extends Node {
             var tr:TableRow = new TableRow(new Location(r.location.line, r.location.column), cells);
             rows.push(tr);
         }
-        
-        
+
+
         return new DataTable(rows);
     }
 }

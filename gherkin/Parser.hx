@@ -85,7 +85,7 @@ class ParserContext {
 class Parser<T> {
     private var builder:Builder<T>;
     public var stopAtFirstError:Bool;
-    
+
     public function new(builder:Builder<T>) {
         this.builder = builder;
     }
@@ -97,18 +97,18 @@ class Parser<T> {
         var tokenScanner:ITokenScanner = new TokenScanner(s);
         return parse(tokenScanner, tokenMatcher);
     }
-    
+
     public function parse(tokenScanner:ITokenScanner, tokenMatcher:ITokenMatcher):T {
         builder.reset();
         tokenMatcher.reset();
-        
+
         var context:ParserContext = new ParserContext(
                 tokenScanner,
                 tokenMatcher,
                 new Array<Token>(),
                 new Array<ParserException>()
         );
-        
+
         startRule(context, RuleType.GherkinDocument);
         var state = 0;
         var token:Token = null;
@@ -116,30 +116,30 @@ class Parser<T> {
             token = readToken(context);
             state = matchToken(state, token, context);
         } while (!token.isEOF);
-        
+
         endRule(context, RuleType.GherkinDocument);
-        
+
         if (context.errors.length > 0) {
             throw new ParserException.CompositeParserException(context.errors);
         }
         return builder.result;
     }
-    
+
     private function addError(context:ParserContext, error:ParserException):Void {
         context.errors.push(error);
         if (context.errors.length > 10)
             throw new ParserException.CompositeParserException(context.errors);
     }
-    
+
     private function handleAstError<V>(context:ParserContext, action:Void->V):V {
         return handleExternalError(context, action, null);
     }
-    
+
     private function handleExternalError<V>(context:ParserContext, action:Void->V, defaultValue:V):V {
         if (stopAtFirstError) {
             return action();
         }
-        
+
         try {
             return action();
         } catch (compositeParserException:ParserException.CompositeParserException) {
@@ -149,132 +149,132 @@ class Parser<T> {
         } catch (error:ParserException) {
             addError(context, error);
         }
-        
+
         return defaultValue;
     }
-    
+
     private function build(context:ParserContext, token:Token):Void {
         handleAstError(context, function() {
             builder.build(token);
             return null;
         });
     }
-    
+
     private function startRule(context:ParserContext, ruleType:RuleType):Void {
         handleAstError(context, function() {
             builder.startRule(ruleType);
             return null;
         });
     }
-    
+
     private function endRule(context:ParserContext, ruleType:RuleType):Void {
         handleAstError(context, function() {
             builder.endRule(ruleType);
             return null;
         });
     }
-    
+
     private function readToken(context:ParserContext):Token {
         return context.tokenQueue.length > 0 ? context.tokenQueue.pop() : context.tokenScanner.read();
     }
-    
+
     private function match_EOF(context:ParserContext, token:Token):Bool {
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_EOF(token);
         }, false);
     }
-    
+
     private function match_Empty(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_Empty(token);
         }, false);
     }
-    
+
     private function match_Comment(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_Comment(token);
         }, false);
     }
-    
+
     private function match_TagLine(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_TagLine(token);
         }, false);
     }
-    
+
     private function match_FeatureLine(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_FeatureLine(token);
         }, false);
     }
-    
+
     private function match_BackgroundLine(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_BackgroundLine(token);
         }, false);
     }
-    
+
     private function match_ScenarioLine(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_ScenarioLine(token);
         }, false);
     }
-    
+
     private function match_ScenarioOutlineLine(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_ScenarioOutlineLine(token);
         }, false);
     }
-    
+
     private function match_ExamplesLine(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_ExamplesLine(token);
         }, false);
     }
-    
+
     private function match_StepLine(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_StepLine(token);
         }, false);
     }
-    
+
     private function match_DocStringSeparator(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_DocStringSeparator(token);
         }, false);
     }
-    
+
     private function match_TableRow(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_TableRow(token);
         }, false);
     }
-    
+
     private function match_Language(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_Language(token);
         }, false);
     }
-    
+
     private function match_Other(context:ParserContext, token:Token):Bool {
         if (token.isEOF) return false;
         return handleExternalError(context, function() {
             return context.tokenMatcher.match_Other(token);
         }, false);
     }
-    
+
     private function matchToken(state:Int, token:Token, context:ParserContext):Int {
         var newState:Int = -1;
         switch (state) {
@@ -347,7 +347,7 @@ class Parser<T> {
         }
         return newState;
     }
-    
+
     // Start
     private function matchTokenAt_0(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -387,7 +387,7 @@ class Parser<T> {
                 build(context, token);
             return 0;
         }
-        
+
         var stateComment = "State: 0 - Start";
         token.detach();
         var expectedTokens = ["#EOF", "#Language", "#TagLine", "#FeatureLine", "#Comment", "#Empty"];
@@ -400,7 +400,7 @@ class Parser<T> {
         addError(context, error);
         return 0;
     }
-    
+
     // GherkinDocument:0>Feature:0>Feature_Header:0>#Language:0
     private function matchTokenAt_1(token:Token, context:ParserContext):Int {
         if (match_TagLine(context, token))
@@ -424,7 +424,7 @@ class Parser<T> {
                 build(context, token);
             return 1;
         }
-        
+
         var stateComment = "State: 1 - GherkinDocument:0>Feature:0>Feature_Header:0>#Language:0";
         token.detach();
         var expectedTokens = ["#TagLine", "#FeatureLine", "#Comment", "#Empty"];
@@ -437,7 +437,7 @@ class Parser<T> {
         addError(context, error);
         return 1;
     }
-    
+
     // GherkinDocument:0>Feature:0>Feature_Header:1>Tags:0>#TagLine:0
     private function matchTokenAt_2(token:Token, context:ParserContext):Int {
         if (match_TagLine(context, token))
@@ -461,7 +461,7 @@ class Parser<T> {
                 build(context, token);
             return 2;
         }
-        
+
         var stateComment = "State: 2 - GherkinDocument:0>Feature:0>Feature_Header:1>Tags:0>#TagLine:0";
         token.detach();
         var expectedTokens = ["#TagLine", "#FeatureLine", "#Comment", "#Empty"];
@@ -474,7 +474,7 @@ class Parser<T> {
         addError(context, error);
         return 2;
     }
-    
+
     // GherkinDocument:0>Feature:0>Feature_Header:2>#FeatureLine:0
     private function matchTokenAt_3(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -531,7 +531,7 @@ class Parser<T> {
                 build(context, token);
             return 4;
         }
-        
+
         var stateComment = "State: 3 - GherkinDocument:0>Feature:0>Feature_Header:2>#FeatureLine:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Empty", "#Comment", "#BackgroundLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -544,7 +544,7 @@ class Parser<T> {
         addError(context, error);
         return 3;
     }
-    
+
     // GherkinDocument:0>Feature:0>Feature_Header:3>Feature_Description:0>Description_Helper:1>Description:0>#Other:0
     private function matchTokenAt_4(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -601,7 +601,7 @@ class Parser<T> {
                 build(context, token);
             return 4;
         }
-        
+
        var stateComment = "State: 4 - GherkinDocument:0>Feature:0>Feature_Header:3>Feature_Description:0>Description_Helper:1>Description:0>#Other:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#BackgroundLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -615,7 +615,7 @@ class Parser<T> {
         return 4;
 
     }
-    
+
     // GherkinDocument:0>Feature:0>Feature_Header:3>Feature_Description:0>Description_Helper:2>#Comment:0
     private function matchTokenAt_5(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -666,7 +666,7 @@ class Parser<T> {
                 build(context, token);
             return 5;
         }
-        
+
         var stateComment = "State: 5 - GherkinDocument:0>Feature:0>Feature_Header:3>Feature_Description:0>Description_Helper:2>#Comment:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#BackgroundLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Empty"];
@@ -679,7 +679,7 @@ class Parser<T> {
         addError(context, error);
         return 5;
     }
-    
+
     // GherkinDocument:0>Feature:1>Background:0>#BackgroundLine:0
     private function matchTokenAt_6(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -735,7 +735,7 @@ class Parser<T> {
                 build(context, token);
             return 7;
         }
-        
+
         var stateComment = "State: 6 - GherkinDocument:0>Feature:1>Background:0>#BackgroundLine:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Empty", "#Comment", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -748,7 +748,7 @@ class Parser<T> {
         addError(context, error);
         return 6;
     }
-    
+
     // GherkinDocument:0>Feature:1>Background:1>Background_Description:0>Description_Helper:1>Description:0>#Other:0
     private function matchTokenAt_7(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -804,7 +804,7 @@ class Parser<T> {
                 build(context, token);
             return 7;
         }
-        
+
         var stateComment = "State: 7 - GherkinDocument:0>Feature:1>Background:1>Background_Description:0>Description_Helper:1>Description:0>#Other:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -817,7 +817,7 @@ class Parser<T> {
         addError(context, error);
         return 7;
     }
-    
+
     // GherkinDocument:0>Feature:1>Background:1>Background_Description:0>Description_Helper:2>#Comment:0
     private function matchTokenAt_8(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -867,7 +867,7 @@ class Parser<T> {
                 build(context, token);
             return 8;
         }
-        
+
         var stateComment = "State: 8 - GherkinDocument:0>Feature:1>Background:1>Background_Description:0>Description_Helper:2>#Comment:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Empty"];
@@ -880,7 +880,7 @@ class Parser<T> {
         addError(context, error);
         return 8;
     }
-    
+
     // GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:0>#StepLine:0
     private function matchTokenAt_9(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -947,7 +947,7 @@ class Parser<T> {
                 build(context, token);
             return 9;
         }
-        
+
         var stateComment = "State: 9 - GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:0>#StepLine:0";
         token.detach();
         var expectedTokens = ["#EOF", "#TableRow", "#DocStringSeparator", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -960,7 +960,7 @@ class Parser<T> {
         addError(context, error);
         return 9;
     }
-    
+
     // GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:0>DataTable:0>#TableRow:0
     private function matchTokenAt_10(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1025,7 +1025,7 @@ class Parser<T> {
                 build(context, token);
             return 10;
         }
-        
+
         var stateComment = "State: 10 - GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:0>DataTable:0>#TableRow:0";
         token.detach();
         var expectedTokens = ["#EOF", "#TableRow", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -1038,7 +1038,7 @@ class Parser<T> {
         addError(context, error);
         return 10;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:0>Tags:0>#TagLine:0
     private function matchTokenAt_11(token:Token, context:ParserContext):Int {
         if (match_TagLine(context, token))
@@ -1070,7 +1070,7 @@ class Parser<T> {
                 build(context, token);
             return 11;
         }
-        
+
         var stateComment = "State: 11 - GherkinDocument:0>Feature:2>Scenario_Definition:0>Tags:0>#TagLine:0";
         token.detach();
         var expectedTokens = ["#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -1083,7 +1083,7 @@ class Parser<T> {
         addError(context, error);
         return 11;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:0>#ScenarioLine:0
     private function matchTokenAt_12(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1143,7 +1143,7 @@ class Parser<T> {
                 build(context, token);
             return 13;
         }
-        
+
         var stateComment = "State: 12 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:0>#ScenarioLine:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Empty", "#Comment", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -1156,7 +1156,7 @@ class Parser<T> {
         addError(context, error);
         return 12;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:1>Scenario_Description:0>Description_Helper:1>Description:0>#Other:0
     private function matchTokenAt_13(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1216,7 +1216,7 @@ class Parser<T> {
                 build(context, token);
             return 13;
         }
-        
+
         var stateComment = "State: 13 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:1>Scenario_Description:0>Description_Helper:1>Description:0>#Other:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -1229,7 +1229,7 @@ class Parser<T> {
         addError(context, error);
         return 13;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:1>Scenario_Description:0>Description_Helper:2>#Comment:0
     private function matchTokenAt_14(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1283,7 +1283,7 @@ class Parser<T> {
                 build(context, token);
             return 14;
         }
-        
+
         var stateComment = "State: 14 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:1>Scenario_Description:0>Description_Helper:2>#Comment:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Empty"];
@@ -1296,7 +1296,7 @@ class Parser<T> {
         addError(context, error);
         return 14;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:0>#StepLine:0
     private function matchTokenAt_15(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1367,7 +1367,7 @@ class Parser<T> {
                 build(context, token);
             return 15;
         }
-        
+
         var stateComment = "State: 15 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:0>#StepLine:0";
         token.detach();
         var expectedTokens = ["#EOF", "#TableRow", "#DocStringSeparator", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -1380,7 +1380,7 @@ class Parser<T> {
         addError(context, error);
         return 15;
     }
-    
+
     //GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:0>DataTable:0>#TableRow:0
     private function matchTokenAt_16(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1449,7 +1449,7 @@ class Parser<T> {
                 build(context, token);
             return 16;
         }
-        
+
         var stateComment = "State: 16 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:0>DataTable:0>#TableRow:0";
         token.detach();
         var expectedTokens = ["#EOF", "#TableRow", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -1462,7 +1462,7 @@ class Parser<T> {
         addError(context, error);
         return 16;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:0>#ScenarioOutlineLine:0
     private function matchTokenAt_17(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1539,7 +1539,7 @@ class Parser<T> {
                 build(context, token);
             return 18;
         }
-        
+
         var stateComment = "State: 17 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:0>#ScenarioOutlineLine:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Empty", "#Comment", "#StepLine", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -1552,7 +1552,7 @@ class Parser<T> {
         addError(context, error);
         return 17;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:1>ScenarioOutline_Description:0>Description_Helper:1>Description:0>#Other:0
     private function matchTokenAt_18(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1631,7 +1631,7 @@ class Parser<T> {
                 build(context, token);
             return 18;
         }
-        
+
         var stateComment = "State: 18 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:1>ScenarioOutline_Description:0>Description_Helper:1>Description:0>#Other:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#StepLine", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -1644,7 +1644,7 @@ class Parser<T> {
         addError(context, error);
         return 18;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:1>ScenarioOutline_Description:0>Description_Helper:2>#Comment:0
     private function matchTokenAt_19(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1715,7 +1715,7 @@ class Parser<T> {
                 build(context, token);
             return 19;
         }
-        
+
         var stateComment = "State: 19 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:1>ScenarioOutline_Description:0>Description_Helper:2>#Comment:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#StepLine", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Empty"];
@@ -1728,7 +1728,7 @@ class Parser<T> {
         addError(context, error);
         return 19;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:0>#StepLine:0
     private function matchTokenAt_20(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1818,7 +1818,7 @@ class Parser<T> {
                 build(context, token);
             return 20;
         }
-        
+
         var stateComment = "State: 20 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:0>#StepLine:0";
         token.detach();
         var expectedTokens = ["#EOF", "#TableRow", "#DocStringSeparator", "#StepLine", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -1831,7 +1831,7 @@ class Parser<T> {
         addError(context, error);
         return 20;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:1>Step_Arg:0>__alt1:0>DataTable:0>#TableRow:0
     private function matchTokenAt_21(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -1921,7 +1921,7 @@ class Parser<T> {
                 build(context, token);
             return 21;
         }
-        
+
         var stateComment = "State: 21 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:1>Step_Arg:0>__alt1:0>DataTable:0>#TableRow:0";
         token.detach();
         var expectedTokens = ["#EOF", "#TableRow", "#StepLine", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -1934,7 +1934,7 @@ class Parser<T> {
         addError(context, error);
         return 21;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:0>Tags:0>#TagLine:0
     private function matchTokenAt_22(token:Token, context:ParserContext):Int {
         if (match_TagLine(context, token))
@@ -1959,7 +1959,7 @@ class Parser<T> {
                 build(context, token);
             return 22;
         }
-        
+
         var stateComment = "State: 22 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:0>Tags:0>#TagLine:0";
         token.detach();
         var expectedTokens = ["#TagLine", "#ExamplesLine", "#Comment", "#Empty"];
@@ -1972,7 +1972,7 @@ class Parser<T> {
         addError(context, error);
         return 22;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:0>#ExamplesLine:0
     private function matchTokenAt_23(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -2061,7 +2061,7 @@ class Parser<T> {
                 build(context, token);
             return 24;
         }
-        
+
         var stateComment = "State: 23 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:0>#ExamplesLine:0";
         var expectedTokens = ["#EOF", "#Empty", "#Comment", "#TableRow", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
         var error = token.isEOF
@@ -2073,7 +2073,7 @@ class Parser<T> {
         addError(context, error);
         return 23;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:1>Examples_Description:0>Description_Helper:1>Description:0>#Other:0
     private function matchTokenAt_24(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -2164,7 +2164,7 @@ class Parser<T> {
                 build(context, token);
             return 24;
         }
-        
+
         var stateComment = "State: 24 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:1>Examples_Description:0>Description_Helper:1>Description:0>#Other:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#TableRow", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Other"];
@@ -2177,7 +2177,7 @@ class Parser<T> {
         addError(context, error);
         return 24;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:1>Examples_Description:0>Description_Helper:2>#Comment:0
     private function matchTokenAt_25(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -2260,7 +2260,7 @@ class Parser<T> {
                 build(context, token);
             return 25;
         }
-        
+
         var stateComment = "State: 25 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:1>Examples_Description:0>Description_Helper:2>#Comment:0";
         token.detach();
         var expectedTokens = ["#EOF", "#Comment", "#TableRow", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Empty"];
@@ -2273,7 +2273,7 @@ class Parser<T> {
         addError(context, error);
         return 25;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:2>Examples_Table:0>#TableRow:0
     private function matchTokenAt_26(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -2361,7 +2361,7 @@ class Parser<T> {
                 build(context, token);
             return 26;
         }
-        
+
         var stateComment = "State: 26 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:3>Examples_Definition:1>Examples:2>Examples_Table:0>#TableRow:0";
         token.detach();
         var expectedTokens = ["#EOF", "#TableRow", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -2374,7 +2374,7 @@ class Parser<T> {
         addError(context, error);
         return 26;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:0>#DocStringSeparator:0
     private function matchTokenAt_28(token:Token, context:ParserContext):Int {
         if (match_DocStringSeparator(context, token))
@@ -2387,7 +2387,7 @@ class Parser<T> {
                 build(context, token);
             return 28;
         }
-        
+
         var stateComment = "State: 28 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:0>#DocStringSeparator:0";
         token.detach();
         var expectedTokens = ["#DocStringSeparator", "#Other"];
@@ -2400,7 +2400,7 @@ class Parser<T> {
         addError(context, error);
         return 28;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:2>#DocStringSeparator:0
     private function matchTokenAt_29(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -2485,7 +2485,7 @@ class Parser<T> {
                 build(context, token);
             return 29;
         }
-        
+
         var stateComment = "State: 29 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:1>ScenarioOutline:2>ScenarioOutline_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:2>#DocStringSeparator:0";
         token.detach();
         var expectedTokens = ["#EOF", "#StepLine", "#TagLine", "#ExamplesLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -2498,7 +2498,7 @@ class Parser<T> {
         addError(context, error);
         return 29;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:0>#DocStringSeparator:0
     private function matchTokenAt_30(token:Token, context:ParserContext):Int {
         if (match_DocStringSeparator(context, token))
@@ -2511,7 +2511,7 @@ class Parser<T> {
                 build(context, token);
             return 30;
         }
-        
+
         var stateComment = "State: 30 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:0>#DocStringSeparator:0";
         token.detach();
         var expectedTokens = ["#DocStringSeparator", "#Other"];
@@ -2524,7 +2524,7 @@ class Parser<T> {
         addError(context, error);
         return 30;
     }
-    
+
     // GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:2>#DocStringSeparator:0
     private function matchTokenAt_31(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -2588,7 +2588,7 @@ class Parser<T> {
                 build(context, token);
             return 31;
         }
-        
+
         var stateComment = "State: 31 - GherkinDocument:0>Feature:2>Scenario_Definition:1>__alt0:0>Scenario:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:2>#DocStringSeparator:0";
         token.detach();
         var expectedTokens = ["#EOF", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -2601,7 +2601,7 @@ class Parser<T> {
         addError(context, error);
         return 31;
     }
-    
+
     // GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:0>#DocStringSeparator:0
     private function matchTokenAt_32(token:Token, context:ParserContext):Int {
         if (match_DocStringSeparator(context, token))
@@ -2614,7 +2614,7 @@ class Parser<T> {
                 build(context, token);
             return 32;
         }
-        
+
         var stateComment = "State: 32 - GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:0>#DocStringSeparator:0";
         token.detach();
         var expectedTokens = ["#DocStringSeparator", "#Other"];
@@ -2627,7 +2627,7 @@ class Parser<T> {
         addError(context, error);
         return 32;
     }
-    
+
     // GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:2>#DocStringSeparator:0
     private function matchTokenAt_33(token:Token, context:ParserContext):Int {
         if (match_EOF(context, token))
@@ -2687,7 +2687,7 @@ class Parser<T> {
                 build(context, token);
             return 33;
         }
-        
+
         var stateComment = "State: 33 - GherkinDocument:0>Feature:1>Background:2>Scenario_Step:0>Step:1>Step_Arg:0>__alt1:1>DocString:2>#DocStringSeparator:0";
         token.detach();
         var expectedTokens = ["#EOF", "#StepLine", "#TagLine", "#ScenarioLine", "#ScenarioOutlineLine", "#Comment", "#Empty"];
@@ -2700,7 +2700,7 @@ class Parser<T> {
         addError(context, error);
         return 33;
     }
-    
+
     private function lookahead_0(context:ParserContext, currentToken:Token):Bool {
         currentToken.detach();
         var token:Token = null;
@@ -2722,7 +2722,7 @@ class Parser<T> {
             || match_Comment(context, token)
             || match_TagLine(context, token)
         );
-        
+
         context.tokenQueue = context.tokenQueue.concat(queue);
 
         return match;

@@ -18,17 +18,17 @@ import ANSI;
 class Runner {
     private var doc:GherkinDocument;
     private var script:Script;
-    
+
     public function new(doc:GherkinDocument, script:Script) {
         this.doc = doc;
         this.script = script;
     }
-    
+
     private var stepsToStepDefs:Map<String, StepDefinition>;
-    
+
     public function prepare():Void {
         stepsToStepDefs = new Map<String, StepDefinition>();
-        
+
         for (child in doc.feature.children) {
             var scenario:Scenario = cast child;
             for (step in scenario.steps) {
@@ -57,87 +57,87 @@ class Runner {
             }
         }
     }
-    
+
     public static function assert(o1:Dynamic, o2:Dynamic) {
         if (o1 != o2) {
             throw '${o1} != ${o2}';
         }
     }
-    
+
     public static function assert_not(o1:Dynamic, o2:Dynamic) {
         if (o1 == o2) {
             throw 'Expected ${o1} to not equal ${o2}';
         }
     }
-    
+
     public static function debug(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(Magenta) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
     public static function info(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(Green) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
     public static function error(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(Red) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
- 
+
     public static function success(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(Green) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
     public static function warning(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(Yellow) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
     public static function data(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(White) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
     public static function log(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
     public static function cyan(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(Cyan) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
     public static function deferred():Deferred<Dynamic> {
         return new Deferred<Dynamic>();
     }
-    
+
     public static function promise(d:Deferred<Dynamic>):Promise<Dynamic> {
         return new Promise(d);
     }
-    
+
     public static function magenta(data:Dynamic, newLine:Bool = true) {
         Sys.stdout().writeString(ANSI.set(Magenta) + data + (newLine == true ? "\n" : ""));
         Sys.stdout().writeString(ANSI.set(DefaultForeground) + "");
     }
-    
+
             var skip:Bool = false;
             var passedCount:Int = 0;
             var skippedCount:Int = 0;
             var failedCount:Int = 0;
-            
+
         var interp:ScriptInterp = null;
         var parser:Parser = null;
         var hscript:String = null;
-           
-        
+
+
         var scenarios:Array<Scenario>;
         var scenarioIndex:Int = 0;
-        
+
         var steps:Array<Step>;
-    
+
     public function nextScenario() {
         if (scenarios.length == 0) {
             if (_fn != null) {
@@ -145,32 +145,32 @@ class Runner {
             }
             return;
         }
-        
+
         skip = false;
         passedCount = 0;
         skippedCount = 0;
         failedCount = 0;
-        
+
         var scenario:Scenario = scenarios[0];
         var title:String = " " + StringTools.trim(scenario.name) + " ";
         var x:Int = Std.int((80 - title.length) / 2);
         title = StringTools.lpad(title, "-", title.length + x);
         title = StringTools.rpad(title, "-", title.length + x);
         log(title + "\n");
-        
+
         steps = new Array<Step>();
         for (step in scenario.steps) {
             steps.push(step);
         }
-        
+
         scenarios.remove(scenario);
-        
+
         nextStep();
     }
-    
+
     public function nextStep() {
         Sys.sleep(0);
-        
+
         if (steps.length == 0) {
             success("\n    passed: " + passedCount, false);
             if (failedCount > 0) {
@@ -181,16 +181,16 @@ class Runner {
                 log(", ", false);
                 warning("skipped: " + skippedCount, false);
             }
-            
+
             success("\n");
-            
+
             nextScenario();
             return;
         }
-        
+
         var step:Step = steps[0];
         steps.remove(step);
-        
+
         var r = runStep(step);
         if (Std.is(r, Promise)) {
             var p:Promise<Dynamic> = cast r;
@@ -203,14 +203,14 @@ class Runner {
                 passedCount++;
                 nextStep();
             }).catchError(function(e) {
-               handleError(e, step); 
+               handleError(e, step);
                nextStep();
             });
         } else {
             nextStep();
         }
     }
-    
+
     private var _fn:Dynamic->Void;
     public function run(context:RunnerContext = null, fn:Dynamic->Void):Void {
         prepare();
@@ -221,10 +221,10 @@ class Runner {
         interp = new ScriptInterp();
         parser = new Parser();
         hscript = script.buildScript();
-        
+
         var program = parser.parseString(hscript);
         interp.variables.set("DataTable", DataTable);
-        
+
         for (s in context.statics.keys()) {
             interp.variables.set(s, context.statics.get(s));
         }
@@ -234,9 +234,9 @@ class Runner {
         for (o in context.objects.keys()) {
             interp.variables.set(o, context.objects.get(o));
         }
-        
+
         interp.execute(program);
-        
+
         scenarioIndex = 0;
         scenarios = new Array<Scenario>();
         for (child in doc.feature.children) {
@@ -244,20 +244,24 @@ class Runner {
             if (matchTags(scenario.tags, context.tags) == false) {
                 continue;
             }
-            
+
             scenarios.push(scenario);
         }
-        
+
         nextScenario();
     }
-    
+
     private function buildParamRanges(step:Step):Array<Dynamic> {
         var paramRanges:Array<Dynamic> = new Array<Dynamic>();
         var stepDef:StepDefinition = stepsToStepDefs.get(step.text);
+        var dataTable:DataTable = cast step.argument;
         var matcher:EReg = new EReg(stepDef.regexp, "g");
         matcher.match(step.text);
         var i:Int = 0;
         for (n in 0...stepDef.paramNames.length) {
+            if (dataTable != null && n >= stepDef.paramNames.length - 1) {
+                continue;
+            }
             var t:Int = step.text.indexOf(matcher.matched(n + 1), i + 1);
             i = t;
             var p = {
@@ -268,7 +272,7 @@ class Runner {
         }
         return paramRanges;
     }
-    
+
     @:access(hscript.Interp)
     private function runStep(step:Step):Dynamic {
         var r:Dynamic = null;
@@ -277,9 +281,9 @@ class Runner {
         var matcher:EReg = new EReg(stepDef.regexp, "g");
         matcher.match(step.text);
         var paramValues:Array<String> = new Array<String>();
-        
+
         var dataTable:DataTable = cast step.argument;
-        
+
         var i:Int = 0;
         for (n in 0...stepDef.paramNames.length) {
             if (dataTable != null && n >= stepDef.paramNames.length - 1) {
@@ -287,11 +291,11 @@ class Runner {
             }
             paramValues.push("\"" + matcher.matched(n + 1) + "\"");
         }
-        
+
         if (dataTable != null) {
             paramValues.push("DataTable.fromJSON(\"" + dataTable.toJSON() + "\")");
         }
-        
+
         var call:String = '${stepDef.functionName}(${paramValues.join(",")})';
         try {
             if (skip == false) {
@@ -313,23 +317,23 @@ class Runner {
         } catch (e:Dynamic) {
             handleError(e, step);
         }
-        return r;        
+        return r;
     }
-    
+
     @:access(hscript.Interp)
     private function handleError(e:Dynamic, step:Step) {
         var dataTable:DataTable = cast step.argument;
-        
+
         printLine(step.keyword + step.text, error, buildParamRanges(step));
         if (dataTable != null) {
             prettyPrintTable(dataTable, error);
         }
-        
+
         var n1:Int = interp.curExpr.pmin;
         var n2:Int = interp.curExpr.pmax;
         n1 = startOfLine(hscript, n1);
         n2 = endOfLine(hscript, n2);
-        
+
         var start:Int = n1;
         var prevLines:Array<String> = new Array<String>();
         for (i in 0...2) {
@@ -341,7 +345,7 @@ class Runner {
                 prevLines.push(line);
             }
         }
-        
+
         start = n2;
         var nextLines:Array<String> = new Array<String>();
         for (i in 0...2) {
@@ -353,8 +357,8 @@ class Runner {
                 nextLines.push(line);
             }
         }
-        
-        
+
+
         error("");
         error("    ERROR: " + e);
         prevLines.reverse();
@@ -362,19 +366,19 @@ class Runner {
             line = StringTools.trim(line);
             data("      " + line);
         }
-        
+
         error("    > " + StringTools.trim(hscript.substring(n1, n2)));
-        
+
         for (line in nextLines) {
             line = StringTools.trim(line);
             data("      " + line);
         }
-        
+
         skip = true;
         error("");
         failedCount++;
     }
-    
+
     private function startOfLine(s:String, from:Int):Int {
         var n = from;
         while (n != 0) {
@@ -385,7 +389,7 @@ class Runner {
         }
         return n;
     }
-    
+
     private function endOfLine(s:String, from:Int) {
         var n = from;
         while (n < s.length - 1) {
@@ -396,17 +400,17 @@ class Runner {
         }
         return n;
     }
-    
+
     private function matchTags(tags:Array<Tag>, allowedTags:String):Bool {
         if (allowedTags == null || allowedTags.length == 0) {
             return true;
         }
-        
+
         var scenarioTags:Array<String> = new Array<String>();
         for (t in tags) {
             scenarioTags.push(t.name);
         }
-        
+
         var allowed:Bool = false;
         var allowedArray:Array<String> = allowedTags.split(" ");
         for (allowedTag in allowedArray) {
@@ -417,7 +421,7 @@ class Runner {
         }
         return allowed;
     }
-    
+
     private static function printLine(line:String, printFn:Dynamic->Bool->Void, ranges:Array<Dynamic>, indent:String = "    ") {
         if (ranges == null || ranges.length == 0) {
             printFn(indent + line, true);
@@ -442,7 +446,7 @@ class Runner {
             printFn("\n", false);
         }
     }
-    
+
     private static function prettyPrintTable(dataTable:DataTable, printFn:Dynamic->Bool->Void, indent:String = "        ") {
         var sizes:Map<Int, Int> = new Map<Int, Int>();
         var n:Int = 0;
@@ -464,7 +468,7 @@ class Runner {
                 n++;
             }
         }
-        
+
         for (row in  dataTable.rows) {
             n = 0;
             for (c in row.cells) {

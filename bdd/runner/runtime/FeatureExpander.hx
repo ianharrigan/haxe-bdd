@@ -14,15 +14,15 @@ import gherkin.ast.Tag;
 
 class FeatureExpander {
     public var expandedDoc:GherkinDocument;
-    
+
     public function new() {
     }
-    
+
     public function expand(doc:GherkinDocument):GherkinDocument {
-        
+
         var newChildren:Array<ScenarioDefinition> = new Array<ScenarioDefinition>();
         var backgroundSteps:Array<Step> = null;
-        
+
         for (child in doc.feature.children) {
             if (Std.is(child, Background)) {
                 var background:Background = cast child;
@@ -32,7 +32,7 @@ class FeatureExpander {
                 for (examples in scenarioOutline.examples) {
                     var header:TableRow = examples.tableHeader;
                     var rows:Array<TableRow> = examples.tableBody;
-                    
+
                     for (row in rows) {
                         var newScenarioSteps:Array<Step> = new Array<Step>();
                         // copy background steps
@@ -42,10 +42,10 @@ class FeatureExpander {
                                                                       backgroundStep.keyword,
                                                                       backgroundStep.text,
                                                                       backgroundStep.argument);
-                                newScenarioSteps.push(backgroundStep);                                      
+                                newScenarioSteps.push(backgroundStep);
                             }
                         }
-                        
+
                         // copy and expand outline steps
                         for (step in scenarioOutline.steps) {
                             var newStepText:String = step.text;
@@ -56,7 +56,7 @@ class FeatureExpander {
                                 n++;
                                 newStepText = StringTools.replace(newStepText, "<" + headerCellValue + ">", cellValue);
                             }
-                            
+
                             var dataTable:DataTable = cast step.argument;
                             var newDataTable:DataTable = null;
                             if (dataTable != null) {
@@ -65,16 +65,16 @@ class FeatureExpander {
                                     var newDataTableCells:Array<TableCell> = new Array<TableCell>();
                                     for (dataTableCell in dataTableRow.cells) {
                                         var dataTableCellValue = dataTableCell.value;
-                                        
+
                                         var n = 0;
                                         for (headerCell in header.cells) {
                                             var headerCellValue:String = headerCell.value;
                                             var cellValue:String = row.cells[n].value;
                                             n++;
-                                            
+
                                             dataTableCellValue = StringTools.replace(dataTableCellValue, "<" + headerCellValue + ">", cellValue);
                                         }
-                                        
+
                                         var newDataTableCell:TableCell = new TableCell(dataTableCell.location, dataTableCellValue);
                                         newDataTableCells.push(newDataTableCell);
                                     }
@@ -83,17 +83,17 @@ class FeatureExpander {
                                 }
                                 newDataTable = new DataTable(newDataTableRows);
                             }
-                            
+
                             var newStep:Step = null;
                             if (newDataTable == null) {
                                 newStep = new Step(step.location, step.keyword, newStepText, step.argument);
                             } else {
                                 newStep = new Step(step.location, step.keyword, newStepText, newDataTable);
                             }
-                            
+
                             newScenarioSteps.push(newStep);
                         }
-                        
+
                         var newScenario:Scenario = new Scenario(scenarioOutline.tags,
                                                                 scenarioOutline.location,
                                                                 scenarioOutline.keyword,
@@ -114,16 +114,16 @@ class FeatureExpander {
                                                               backgroundStep.keyword,
                                                               backgroundStep.text,
                                                               backgroundStep.argument);
-                        newScenarioSteps.push(backgroundStep);                                      
+                        newScenarioSteps.push(backgroundStep);
                     }
                 }
-                
+
                 // copy scenario steps
                 for (step in scenario.steps) {
                     var newStep:Step = new Step(step.location, step.keyword, step.text, step.argument);
                     newScenarioSteps.push(newStep);
                 }
-                
+
                 var newScenario:Scenario = new Scenario(scenario.tags,
                                                         scenario.location,
                                                         scenario.keyword,
@@ -134,7 +134,7 @@ class FeatureExpander {
                 newChildren.push(newScenario);
             }
         }
-        
+
         var feature:Feature = new Feature(doc.feature.tags,
                                           doc.feature.location,
                                           doc.feature.language,
@@ -142,9 +142,9 @@ class FeatureExpander {
                                           doc.feature.name,
                                           doc.feature.description,
                                           newChildren);
-        
+
         expandedDoc = new GherkinDocument(feature, doc.comments);
         return expandedDoc;
     }
-    
+
 }
